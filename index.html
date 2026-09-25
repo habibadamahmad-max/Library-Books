@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Book Barcode Scanner and Excel Export System - Scan ISBN barcodes, retrieve bibliographic metadata, and export to Excel.">
+  <title>Book Barcode Scanner and Excel Export System</title>
+  
+  <!-- Favicon SVG -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%232563eb%22><path d=%22M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253%22 stroke=%22white%22 stroke-width=%221.5%22/></svg>">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="container header-content">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1>Book Barcode Scanner &amp; Excel Export System</h1>
+          <p>ISBN Scanning &bull; Bibliographic Retrieval &bull; Spreadsheet Management</p>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <div id="net-status-badge" class="status-badge online">
+          <span class="status-dot"></span>
+          <span>Online</span>
+        </div>
+        <div id="camera-status-badge" class="status-badge camera-stopped">
+          <span class="status-dot"></span>
+          <span>Scanner Idle</span>
+        </div>
+        <a href="test-barcodes.html" target="_blank" class="btn btn-outline btn-sm" title="Open printable/on-screen barcode sheet for testing">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+          Test Barcodes Sheet
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container main-content">
+
+    <!-- Top Grid: Scanner (Left) & Book Preview (Right) -->
+    <div class="top-grid">
+
+      <!-- Left Column: Scanner & Manual Lookup Card -->
+      <section class="card" aria-label="Barcode Scanner and Input">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Barcode Scanner
+          </h2>
+          <span style="font-size:0.78rem; color:var(--text-muted);">EAN-13 &bull; ISBN-13 &bull; ISBN-10</span>
+        </div>
+
+        <div class="card-body">
+          <!-- Viewport Viewfinder -->
+          <div id="scanner-viewport-wrapper" class="scanner-viewport-wrapper">
+            <video id="video-preview" playsinline muted></video>
+
+            <!-- Viewfinder Laser Overlay -->
+            <div class="viewfinder-overlay">
+              <div class="viewfinder-box">
+                <div class="corner tl"></div>
+                <div class="corner tr"></div>
+                <div class="corner bl"></div>
+                <div class="corner br"></div>
+                <div class="laser-line"></div>
+              </div>
+            </div>
+
+            <!-- Inactive Placeholder -->
+            <div id="camera-placeholder" class="camera-placeholder">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              <p>Click <strong>Start Scanner</strong> below to activate your webcam or phone camera to scan book barcodes.</p>
+            </div>
+          </div>
+
+          <!-- Scanner Controls Toolbar -->
+          <div class="scanner-controls">
+            <button id="btn-start-scanner" class="btn btn-success" type="button">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Start Scanner
+            </button>
+            <button id="btn-stop-scanner" class="btn btn-danger" type="button" style="display:none;">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+              Stop Scanner
+            </button>
+
+            <select id="select-camera" class="scanner-select" aria-label="Select Camera Device" title="Switch camera device">
+              <option value="">Detecting cameras...</option>
+            </select>
+
+            <button id="btn-toggle-torch" class="btn btn-outline" type="button" title="Toggle Flashlight (supported mobile devices)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Torch
+            </button>
+
+            <button id="btn-scan-file" class="btn btn-outline" type="button" title="Upload a photo or barcode image to decode">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              Scan Image File
+            </button>
+            <input type="file" id="file-barcode-upload" accept="image/*" style="display:none;" aria-label="Upload barcode image">
+          </div>
+
+          <!-- Manual ISBN Input Section -->
+          <div class="manual-input-box">
+            <label for="manual-isbn-input">Manual ISBN / Book Code Entry:</label>
+            <div class="input-group">
+              <input type="text" id="manual-isbn-input" class="form-control isbn-font" placeholder="e.g. 9788171419128  |  020161622X  |  123456789 (SBN)" autocomplete="off" spellcheck="false">
+              <button id="btn-lookup-isbn" class="btn btn-primary" type="button">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                Lookup Book
+              </button>
+            </div>
+            <div id="manual-input-feedback" style="display:none; color:var(--danger); font-size:0.8rem; margin-top:0.35rem;"></div>
+
+            <!-- Quick Testing Samples -->
+            <div class="quick-chips-wrapper">
+              <span class="chips-label">Quick Test ISBNs:</span>
+              <button class="chip-btn" data-isbn="9780132350884" title="Clean Code (ISBN-13)">Clean Code (13)</button>
+              <button class="chip-btn" data-isbn="9788171419128" title="Comparative Education (Regional/Academic ISBN)">Comparative Education</button>
+              <button class="chip-btn" data-isbn="020161622X" title="Pragmatic Programmer (ISBN-10)">Pragmatic Prog (10)</button>
+              <button class="chip-btn" data-isbn="9780596517748" title="JS The Good Parts">JS Good Parts</button>
+              <button class="chip-btn" data-isbn="9780132350880" title="Invalid Checksum Test" style="color:var(--danger);">Invalid Checksum</button>
+              <button class="chip-btn" data-isbn="9789999999993" title="Non-existent Book Test" style="color:var(--warning);">Not in Database</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Scanned Book Information & Confirmation -->
+      <section class="card" aria-label="Book Information Display">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Scanned Book Information
+          </h2>
+          <span style="font-size:0.78rem; color:var(--text-muted);">Verification &amp; Confirmation</span>
+        </div>
+
+        <div id="preview-card-body" class="card-body book-preview-container">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Lower Section: Scanned Books Table & Export Toolbar -->
+    <section class="card scanned-list-card" aria-label="Scanned Books Collection">
+      <div class="card-header">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <h2 class="card-title">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            Scanned Books Collection
+          </h2>
+          <span id="book-count-badge" class="book-count-pill">0 books scanned</span>
+        </div>
+
+        <div class="toolbar-actions">
+          <button id="btn-export-excel" class="btn btn-excel" type="button" title="Export all scanned books into an Excel (.xlsx) file">
+            <svg fill="currentColor" viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6zm4.7-6.2l1.8 3.1h1.5l-2.6-4.2 2.4-3.9h-1.5l-1.6 2.8-1.7-2.8H9l2.4 3.9-2.6 4.2h1.5l1.4-3.1z"/>
+            </svg>
+            Export to Excel (.xlsx)
+          </button>
+          <button id="btn-export-csv" class="btn btn-outline" type="button" title="Export as CSV">
+            CSV
+          </button>
+          <button id="btn-add-manual" class="btn btn-outline" type="button" title="Add book record manually without scanning">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Manually
+          </button>
+          <button id="btn-clear-all" class="btn btn-outline-danger" type="button" title="Clear all books from session">
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- Search & Filter Bar -->
+        <div class="list-toolbar">
+          <div class="toolbar-left">
+            <div class="search-input-wrapper">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input type="text" id="table-search-input" class="form-control" placeholder="Search by title, author, publisher, or ISBN...">
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-outline btn-sm" onclick="window.loadSampleBooksForTesting()" title="Populate table with 5 sample books for instant testing">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              Load 5 Sample Books
+            </button>
+          </div>
+        </div>
+
+        <!-- Scanned Books Table -->
+        <div class="table-responsive">
+          <table class="books-table" id="scanned-books-table">
+            <thead>
+              <tr>
+                <th class="col-sn">S/N</th>
+                <th class="col-isbn">ISBN</th>
+                <th class="col-title">Title</th>
+                <th class="col-author">Author</th>
+                <th class="col-publisher">Publisher</th>
+                <th class="col-date">Publication Date</th>
+                <th class="col-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="books-table-body">
+              <!-- Populated dynamically via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <p>&copy; 2026 Book Barcode Scanner and Excel Export System &bull; Designed for libraries, bookstores, and personal inventory.</p>
+      <div class="footer-links">
+        <a href="test-barcodes.html" target="_blank">Barcode Test Sheet</a>
+        <a href="TESTING_REPORT.md" target="_blank">Testing Report</a>
+        <a href="README.md" target="_blank">Documentation</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       MODALS
+       ========================================================================= -->
+
+  <!-- 1. Add / Edit Book Modal -->
+  <div id="manual-modal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="manual-modal-title" class="modal-title">Add Book Manually</h3>
+        <button class="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="manual-book-form">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="manual-field-title">Book Title *</label>
+              <input type="text" id="manual-field-title" class="form-control" placeholder="Full book title" required>
+            </div>
+            <div class="form-group">
+              <label for="manual-field-isbn">ISBN (10 or 13) *</label>
+              <input type="text" id="manual-field-isbn" class="form-control isbn-font" placeholder="e.g. 9780132350884" required>
+            </div>
+            <div class="form-group">
+              <label for="manual-field-author">Author(s)</label>
+              <input type="text" id="manual-field-author" class="form-control" placeholder="Author name(s)">
+            </div>
+            <div class="form-group">
+              <label for="manual-field-publisher">Publisher</label>
+              <input type="text" id="manual-field-publisher" class="form-control" placeholder="Publishing company">
+            </div>
+            <div class="form-group">
+              <label for="manual-field-date">Publication Date / Year</label>
+              <input type="text" id="manual-field-date" class="form-control" placeholder="e.g. 2024 or 2024-05-12">
+            </div>
+            <div class="form-group">
+              <label for="manual-field-category">Category / Subject</label>
+              <input type="text" id="manual-field-category" class="form-control" placeholder="e.g. Computer Science">
+            </div>
+            <div class="form-group">
+              <label for="manual-field-cover">Cover Image URL (optional)</label>
+              <input type="url" id="manual-field-cover" class="form-control" placeholder="https://...">
+            </div>
+            <div class="form-group full-width">
+              <label for="manual-field-desc">Description (optional)</label>
+              <textarea id="manual-field-desc" class="form-control" placeholder="Brief book summary or description"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline modal-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-success">Save Book</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Book Full Details Modal -->
+  <div id="detail-modal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Book Bibliographic Details</h3>
+        <button class="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" id="detail-modal-content">
+        <!-- Injected via app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline modal-cancel-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Duplicate Warning Confirmation Modal -->
+  <div id="duplicate-modal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header" style="background-color: var(--warning-light); border-bottom-color: var(--warning-border);">
+        <h3 class="modal-title" style="color: #92400e;">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          Duplicate Book Warning
+        </h3>
+        <button class="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" id="duplicate-modal-desc">
+        <!-- Injected via app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn-duplicate-cancel" class="btn btn-outline">Cancel</button>
+        <button type="button" id="btn-duplicate-add-anyway" class="btn btn-warning" style="background:#d97706; color:white;">Add Anyway</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <!-- 1. Offline Bundled Core Libraries -->
+  <script src="assets/js/zxing.min.js"></script>
+  <script src="assets/js/xlsx.full.min.js"></script>
+
+  <!-- 2. Application Modules -->
+  <script src="assets/js/isbn-validator.js"></script>
+  <script src="assets/js/api-service.js"></script>
+  <script src="assets/js/excel-export.js"></script>
+  <script src="assets/js/scanner.js"></script>
+  <script src="assets/js/app.js"></script>
+
+</body>
+</html>

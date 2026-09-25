@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Barcodes & Testing Suite - Book Scanner</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+    body {
+      background-color: #f1f5f9;
+    }
+    .test-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    .test-suite-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .test-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .test-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+    .badge-valid { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .badge-incomplete { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .badge-invalid { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge-notfound { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+    .badge-special { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+
+    .barcode-display-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 120px;
+    }
+    .barcode-svg {
+      max-width: 100%;
+      height: 90px;
+    }
+    .test-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .test-meta strong {
+      color: var(--text-main);
+    }
+    .test-expected {
+      background: #f8fafc;
+      border-left: 3px solid var(--primary);
+      padding: 0.65rem 0.85rem;
+      font-size: 0.82rem;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 1rem;
+    }
+    .test-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .copy-success {
+      background: #059669 !important;
+      color: white !important;
+    }
+    @media print {
+      .app-header, .test-header .btn, .test-actions {
+        display: none !important;
+      }
+      body {
+        background: white;
+      }
+      .test-suite-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="container header-content">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1>Test Barcodes &amp; Verification Suite</h1>
+          <p>Book Barcode Scanner and Excel Export System Verification</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <a href="index.html" class="btn btn-primary btn-sm">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Back to Scanner App
+        </a>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Print Barcodes
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div style="margin-bottom:1.5rem;">
+      <h2 style="font-size:1.4rem; font-weight:700; margin-bottom:0.35rem;">Core Requirement Test Scenarios</h2>
+      <p style="color:var(--text-muted); font-size:0.9rem;">
+        This page generates live scannable barcodes conforming to the 9 mandatory project testing scenarios.
+        You can point your smartphone or webcam at the barcodes below or copy the ISBN to test manual lookup.
+      </p>
+    </div>
+
+    <div class="test-suite-grid">
+
+      <!-- Test 1: Valid ISBN-13 -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-valid">Test 1: Valid ISBN-13 (EAN-13)</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">Clean Code: A Handbook of Agile Software Craftsmanship</h3>
+          <p class="test-meta">
+            Author: <strong>Robert C. Martin</strong><br>
+            ISBN-13: <strong class="isbn-font">9780132350884</strong>
+          </p>
+
+          <div class="barcode-display-box">
+            <svg id="barcode-test-1" class="barcode-svg"></svg>
+          </div>
+
+          <div class="test-expected">
+            <strong>Expected Result:</strong> Scans instantly as EAN-13/ISBN-13. Retrieves title, author, Prentice Hall publisher, 2008 publication date, cover image, and category.
+          </div>
+        </div>
+
+        <div class="test-actions">
+          <button class="btn btn-outline btn-sm copy-btn" data-copy="9780132350884">Copy ISBN</button>
+          <button class="btn btn-outline btn-sm download-btn" data-target="barcode-test-1" data-filename="barcode_clean_code.png">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Test 2: Valid ISBN-10 -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-valid">Test 2: Valid ISBN-10</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">The Pragmatic Programmer: From Journeyman to Master</h3>
+          <p class="test-meta">
+            Authors: <strong>Andrew Hunt, David Thomas</strong><br>
+            ISBN-10: <strong class="isbn-font">020161622X</strong> (EAN-13 barcode: 9780201616224)
+          </p>
+
+          <div class="barcode-display-box">
+            <svg id="barcode-test-2" class="barcode-svg"></svg>
+          </div>
+
+          <div class="test-expected">
+            <strong>Expected Result:</strong> Checksum with check character 'X' is validated modulo 11. Normalizes and converts to ISBN-13 9780201616224. Retrieves full details from API.
+          </div>
+        </div>
+
+        <div class="test-actions">
+          <button class="btn btn-outline btn-sm copy-btn" data-copy="020161622X">Copy ISBN-10</button>
+          <button class="btn btn-outline btn-sm download-btn" data-target="barcode-test-2" data-filename="barcode_pragmatic_prog.png">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Test 3: Incomplete Information -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-incomplete">Test 3: Incomplete Book Info</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">Classic / Sparse Metadata Volume</h3>
+          <p class="test-meta">
+            Title: <strong>Calculus Made Easy</strong><br>
+            ISBN-13: <strong class="isbn-font">9781440058295</strong>
+          </p>
+
+          <div class="barcode-display-box">
+            <svg id="barcode-test-3" class="barcode-svg"></svg>
+          </div>
+
+          <div class="test-expected">
+            <strong>Expected Result:</strong> Successfully retrieves available fields. Missing fields (e.g. publisher or cover) clearly display as <em>"Not available"</em> rather than fabricated info.
+          </div>
+        </div>
+
+        <div class="test-actions">
+          <button class="btn btn-outline btn-sm copy-btn" data-copy="9781440058295">Copy ISBN</button>
+          <button class="btn btn-outline btn-sm download-btn" data-target="barcode-test-3" data-filename="barcode_sparse_info.png">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Test 4: Invalid ISBN Checksum -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-invalid">Test 4: Invalid ISBN (Checksum Error)</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">Corrupted / Damaged Barcode Simulation</h3>
+          <p class="test-meta">
+            Invalid Code: <strong class="isbn-font" style="color:var(--danger);">9780132350880</strong> (Expected check: 4, given: 0)<br>
+            Type: <strong>Modulo-10 Checksum Failure</strong>
+          </p>
+
+          <div class="barcode-display-box">
+            <svg id="barcode-test-4" class="barcode-svg"></svg>
+          </div>
+
+          <div class="test-expected">
+            <strong>Expected Result:</strong> System validates ISBN before calling API, rejects it immediately with error: <em>"Invalid ISBN-13 check digit checksum"</em>, preventing wasted API calls.
+          </div>
+        </div>
+
+        <div class="test-actions">
+          <button class="btn btn-outline btn-sm copy-btn" data-copy="9780132350880">Copy Invalid ISBN</button>
+          <button class="btn btn-outline btn-sm download-btn" data-target="barcode-test-4" data-filename="barcode_invalid.png">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Test 5: ISBN Cannot Be Found -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-notfound">Test 5: ISBN Not Found in Database</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">Uncataloged / Private Publisher Book</h3>
+          <p class="test-meta">
+            Valid Checksum ISBN: <strong class="isbn-font">9789999999993</strong><br>
+            Status: <strong>Syntactically valid, but zero results in Google &amp; OpenLibrary</strong>
+          </p>
+
+          <div class="barcode-display-box">
+            <svg id="barcode-test-5" class="barcode-svg"></svg>
+          </div>
+
+          <div class="test-expected">
+            <strong>Expected Result:</strong> Displays required notice: <em>"Book information could not be found for this ISBN. You can enter the book information manually."</em> with 1-click manual entry.
+          </div>
+        </div>
+
+        <div class="test-actions">
+          <button class="btn btn-outline btn-sm copy-btn" data-copy="9789999999993">Copy ISBN</button>
+          <button class="btn btn-outline btn-sm download-btn" data-target="barcode-test-5" data-filename="barcode_not_found.png">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Test 6: Duplicate Scan Detection -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-special">Test 6: Duplicate Scan Prevention</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">JavaScript: The Good Parts</h3>
+          <p class="test-meta">
+            Author: <strong>Douglas Crockford</strong><br>
+            ISBN-13: <strong class="isbn-font">9780596517748</strong>
+          </p>
+
+          <div class="barcode-display-box">
+            <svg id="barcode-test-6" class="barcode-svg"></svg>
+          </div>
+
+          <div class="test-expected">
+            <strong>Expected Result:</strong> Add book once. Scan barcode a second time: System triggers duplicate warning modal asking user whether to add another copy or cancel.
+          </div>
+        </div>
+
+        <div class="test-actions">
+          <button class="btn btn-outline btn-sm copy-btn" data-copy="9780596517748">Copy ISBN</button>
+          <button class="btn btn-outline btn-sm download-btn" data-target="barcode-test-6" data-filename="barcode_duplicate_test.png">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Test 7: Additional Popular Book -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-valid">Test 7: Learning JavaScript Design Patterns</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">Design Patterns by Addy Osmani</h3>
+          <p class="test-meta">
+            Author: <strong>Addy Osmani</strong><br>
+            ISBN-13: <strong class="isbn-font">9781449331818</strong>
+          </p>
+
+          <div class="barcode-display-box">
+            <svg id="barcode-test-7" class="barcode-svg"></svg>
+          </div>
+
+          <div class="test-expected">
+            <strong>Expected Result:</strong> Full bibliographic metadata retrieved, category tags formatted, cover image displayed, added to collection.
+          </div>
+        </div>
+
+        <div class="test-actions">
+          <button class="btn btn-outline btn-sm copy-btn" data-copy="9781449331818">Copy ISBN</button>
+          <button class="btn btn-outline btn-sm download-btn" data-target="barcode-test-7" data-filename="barcode_design_patterns.png">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Test 8: Regional / Academic Book (Comparative Education) -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-valid">Academic / Regional: Comparative Education</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">Comparative Education</h3>
+          <p class="test-meta">
+            Author: <strong>B. Surya Venkata Dutt (B.S.V. Dutt)</strong><br>
+            Publisher: <strong>Discovery Publishing House</strong><br>
+            ISBN-13: <strong class="isbn-font">9788171419128</strong>
+          </p>
+
+          <div class="barcode-display-box">
+            <svg id="barcode-test-8171419128" class="barcode-svg"></svg>
+          </div>
+
+          <div class="test-expected">
+            <strong>Expected Result:</strong> Successfully discovered via universal online web search / extended catalog. Retrieves Title, Author, Publisher, 2004 publication date, and cover thumbnail.
+          </div>
+        </div>
+
+        <div class="test-actions">
+          <button class="btn btn-outline btn-sm copy-btn" data-copy="9788171419128">Copy ISBN</button>
+          <button class="btn btn-outline btn-sm download-btn" data-target="barcode-test-8171419128" data-filename="barcode_comparative_education.png">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Test 9 & 10: Manual Entry & Excel Export Instructions -->
+      <div class="test-card">
+        <div>
+          <span class="test-badge badge-special">Permissions &amp; Excel Export</span>
+          <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-main);">Permission Denied &amp; Excel Export Verification</h3>
+          <p class="test-meta" style="line-height:1.6;">
+            <strong>Test (Camera Denied):</strong> Click camera icon in browser address bar &rarr; block camera &rarr; click Start Scanner &rarr; verifies user-friendly permission error prompt.<br>
+            <strong>Test (Excel Export):</strong> Click "Export to Excel" with multiple books in list &rarr; verifies downloaded file name format <code>scanned_books_YYYY-MM-DD.xlsx</code> and Excel columns.
+          </p>
+
+          <div class="test-expected" style="margin-top:1rem;">
+            <strong>Verification Checklist:</strong>
+            <ul style="margin-left:1.25rem; margin-top:0.35rem; font-size:0.8rem;">
+              <li>S/N, ISBN, Title, Author, Publisher, Publication Date columns</li>
+              <li>ISBN preserved as text without scientific notation</li>
+              <li>Auto column widths adjusted</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="test-actions" style="margin-top:auto;">
+          <a href="index.html" class="btn btn-primary btn-sm">Launch Scanner App</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="assets/js/jsbarcode.min.js"></script>
+  <script>
+    // Generate barcodes using JsBarcode
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        // Test 1: Clean Code EAN-13
+        JsBarcode("#barcode-test-1", "9780132350884", {
+          format: "EAN13",
+          lineColor: "#0f172a",
+          width: 2,
+          height: 70,
+          displayValue: true,
+          font: "monospace"
+        });
+
+        // Test 2: Pragmatic Programmer EAN-13 (representation of ISBN-10: 020161622X)
+        JsBarcode("#barcode-test-2", "9780201616224", {
+          format: "EAN13",
+          lineColor: "#0f172a",
+          width: 2,
+          height: 70,
+          displayValue: true,
+          font: "monospace"
+        });
+
+        // Test 3: Calculus Made Easy EAN-13
+        JsBarcode("#barcode-test-3", "9781440058295", {
+          format: "EAN13",
+          lineColor: "#0f172a",
+          width: 2,
+          height: 70,
+          displayValue: true,
+          font: "monospace"
+        });
+
+        // Test 4: Invalid Checksum (Code128 so it can render even with bad check digit)
+        JsBarcode("#barcode-test-4", "9780132350880", {
+          format: "CODE128",
+          lineColor: "#dc2626",
+          width: 2,
+          height: 70,
+          displayValue: true,
+          font: "monospace"
+        });
+
+        // Test 5: Not in DB EAN-13
+        JsBarcode("#barcode-test-5", "9789999999993", {
+          format: "EAN13",
+          lineColor: "#7c3aed",
+          width: 2,
+          height: 70,
+          displayValue: true,
+          font: "monospace"
+        });
+
+        // Test 6: JS The Good Parts EAN-13
+        JsBarcode("#barcode-test-6", "9780596517748", {
+          format: "EAN13",
+          lineColor: "#0f172a",
+          width: 2,
+          height: 70,
+          displayValue: true,
+          font: "monospace"
+        });
+
+        // Test 7: Learning JS Design Patterns EAN-13
+        JsBarcode("#barcode-test-7", "9781449331818", {
+          format: "EAN13",
+          lineColor: "#0f172a",
+          width: 2,
+          height: 70,
+          displayValue: true,
+          font: "monospace"
+        });
+
+        // Test 8: Comparative Education EAN-13 (9788171419128)
+        JsBarcode("#barcode-test-8171419128", "9788171419128", {
+          format: "EAN13",
+          lineColor: "#0f172a",
+          width: 2,
+          height: 70,
+          displayValue: true,
+          font: "monospace"
+        });
+
+      } catch (err) {
+        console.error("Barcode generation error:", err);
+      }
+
+      // Copy buttons handler
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const text = btn.getAttribute('data-copy');
+          navigator.clipboard.writeText(text).then(() => {
+            const original = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.classList.add('copy-success');
+            setTimeout(() => {
+              btn.textContent = original;
+              btn.classList.remove('copy-success');
+            }, 1800);
+          });
+        });
+      });
+
+      // Save SVG as PNG button handler
+      document.querySelectorAll('.download-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const svgId = btn.getAttribute('data-target');
+          const filename = btn.getAttribute('data-filename') || 'barcode.png';
+          const svgEl = document.getElementById(svgId);
+          if (!svgEl) return;
+
+          const xml = new XMLSerializer().serializeToString(svgEl);
+          const svg64 = btoa(unescape(encodeURIComponent(xml)));
+          const b64Start = 'data:image/svg+xml;base64,';
+          const image64 = b64Start + svg64;
+
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width + 40;
+            canvas.height = img.height + 40;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 20, 20);
+
+            const a = document.createElement('a');
+            a.download = filename;
+            a.href = canvas.toDataURL('image/png');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          };
+          img.src = image64;
+        });
+      });
+    });
+  </script>
+</body>
+</html>
